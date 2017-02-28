@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'android-apt'
 
 android {
     compileSdkVersion 25
@@ -37,8 +38,8 @@ dependencies {
     })
     compile 'com.android.support:appcompat-v7:25.2.0'
 
-    compile 'com.sun.mail:android-mail:1.5.5'
-    compile 'com.sun.mail:android-activation:1.5.5'
+    compile 'com.jakewharton:butterknife:8.1.0'
+    apt 'com.jakewharton:butterknife-compiler:8.1.0'
 
     testCompile 'junit:junit:4.12'
 }
