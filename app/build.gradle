@@ -29,6 +29,7 @@ repositories {
     maven {
         url "https://maven.java.net/content/groups/public/"
     }
+    maven { url "https://jitpack.io" }
 }
 
 dependencies {
@@ -40,6 +41,14 @@ dependencies {
 
     compile 'com.jakewharton:butterknife:8.1.0'
     apt 'com.jakewharton:butterknife-compiler:8.1.0'
+
+//    RXjava
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'io.reactivex:rxjava:1.1.6'
+
+    compile 'com.squareup.okhttp3:okhttp:3.4.2'
+
+    compile 'com.github.yesidlazaro:GmailBackground:1.2.0'
 
     testCompile 'junit:junit:4.12'
 }
