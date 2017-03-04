@@ -61,11 +61,23 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+
         openCamera();
     }
 
     @OnClick(R.id.button)
     public void onClick() {
+
+        String email = edEmail.getText().toString();
+        String message = edMessage.getText().toString();
+        if (email.trim().isEmpty()) {
+            Toast.makeText(this, "Please input Email", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (message.trim().isEmpty()) {
+            Toast.makeText(this, "Please input Message", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
 
         centerFocusAndTakePhoto(previewSurface, camera);
@@ -217,5 +229,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
+
 
 }
