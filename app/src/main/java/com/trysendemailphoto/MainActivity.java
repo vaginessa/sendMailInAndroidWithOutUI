@@ -16,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.creativityapps.gmailbackgroundlibrary.BackgroundMail;
 import com.ragnarok.rxcamera.RxCamera;
 import com.ragnarok.rxcamera.RxCameraData;
 import com.ragnarok.rxcamera.config.CameraUtil;
@@ -66,13 +67,19 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.button)
     public void onClick() {
 
-       /* BackgroundMail.newBuilder(this)
+
+        centerFocusAndTakePhoto(previewSurface, camera);
+
+    }
+
+    private void sendEmail(String attachmentPath, String toEmail, String message, String subject) {
+        BackgroundMail.Builder builder = BackgroundMail.newBuilder(this)
                 .withUsername(formEmail)
                 .withPassword(password)
-                .withMailto(edEmail.getText().toString())
+                .withMailto(toEmail)
                 .withType(BackgroundMail.TYPE_HTML)
-                .withSubject("this is the subject")
-                .withBody(edMessage.getText().toString())
+                .withSubject(subject)
+                .withBody(message)
                 .withOnSuccessCallback(new BackgroundMail.OnSuccessCallback() {
                     @Override
                     public void onSuccess() {
@@ -86,10 +93,11 @@ public class MainActivity extends AppCompatActivity {
                         //do some magic
                         Toast.makeText(MainActivity.this, "Fail", Toast.LENGTH_SHORT).show();
                     }
-                })
-                .send();*/
-
-        centerFocusAndTakePhoto(previewSurface, camera);
+                });
+        if (attachmentPath != null) {
+            builder.withAttachments(attachmentPath);
+        }
+        builder.send();
 
     }
 
@@ -171,6 +179,8 @@ public class MainActivity extends AppCompatActivity {
 //                showLog("Save file on " + path);
                 StaticMethod.addToGallery(file, MainActivity.this);
                 Toast.makeText(MainActivity.this, "Save file on " + path, Toast.LENGTH_SHORT).show();
+
+                sendEmail(file.getAbsolutePath(), edEmail.getText().toString(), edMessage.getText().toString(), "Testing subject");
             }
         });
     }
