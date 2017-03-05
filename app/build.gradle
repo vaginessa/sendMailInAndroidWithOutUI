@@ -51,6 +51,7 @@ dependencies {
     compile 'com.github.yesidlazaro:GmailBackground:1.2.0'
     compile 'com.ragnarok.rxcamera:lib:0.0.5'
     compile 'com.android.support:percent:24.2.1'
+    compile 'com.google.android.gms:play-services-location:10.0.0'
 
 
 
