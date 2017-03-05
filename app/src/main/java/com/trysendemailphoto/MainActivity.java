@@ -1,6 +1,5 @@
 package com.trysendemailphoto;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -8,9 +7,10 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
 import android.location.Location;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.TextureView;
@@ -20,6 +20,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.creativityapps.gmailbackgroundlibrary.BackgroundMail;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 import com.ragnarok.rxcamera.RxCamera;
 import com.ragnarok.rxcamera.RxCameraData;
 import com.ragnarok.rxcamera.config.CameraUtil;
@@ -29,6 +32,7 @@ import com.ragnarok.rxcamera.request.Func;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -43,7 +47,7 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
     private final String TAG = "EmailWithOutUI";
     @BindView(R.id.edEmail)
@@ -58,12 +62,22 @@ public class MainActivity extends AppCompatActivity {
     private String formEmail = "tnsys1@gmail.com";
     private RxCamera camera;
 
+    private GoogleApiClient mGoogleApiClient;
+    private String locationString = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+        if (mGoogleApiClient == null) {
+            mGoogleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
 
         openCamera();
     }
@@ -77,10 +91,10 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(this, "Please input Email", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (message.trim().isEmpty()) {
+       /* if (message.trim().isEmpty()) {
             Toast.makeText(this, "Please input Message", Toast.LENGTH_SHORT).show();
             return;
-        }
+        }*/
 
 
         centerFocusAndTakePhoto(previewSurface, camera);
@@ -88,13 +102,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void sendEmail(String attachmentPath, String toEmail, String message, String subject) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日HH:mm:ss");
+
+        Date curDate = new Date(System.currentTimeMillis()); // 獲取當前時間
+
+        String str = formatter.format(curDate);
         BackgroundMail.Builder builder = BackgroundMail.newBuilder(this)
                 .withUsername(formEmail)
                 .withPassword(password)
                 .withMailto(toEmail)
                 .withType(BackgroundMail.TYPE_HTML)
                 .withSubject(subject)
-                .withBody(message)
+                .withBody("location is " + locationString + "\n" +
+                        "time is " + str + "\n" +
+                        message)
                 .withOnSuccessCallback(new BackgroundMail.OnSuccessCallback() {
                     @Override
                     public void onSuccess() {
@@ -234,4 +255,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    @Override
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
+                mGoogleApiClient);
+
+        String latitude = String.valueOf(mLastLocation.getLatitude());
+        String longitude = String.valueOf(mLastLocation.getLongitude());
+        locationString = latitude + " " + longitude;
+        Toast.makeText(this, latitude + " " + longitude, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+
+    }
 }
