@@ -19,8 +19,8 @@
 
         <TextureView
             android:id="@+id/preview_surface"
-            app:layout_aspectRatio="75%"
-            app:layout_heightPercent="100%"
+            android:layout_height="match_parent"
+            app:layout_widthPercent="25%"
             />
 
     </android.support.percent.PercentFrameLayout>

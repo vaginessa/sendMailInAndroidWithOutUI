@@ -1,11 +1,14 @@
 package com.trysendemailphoto;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.hardware.Camera;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
@@ -51,8 +54,8 @@ public class MainActivity extends AppCompatActivity {
     Button button;
     @BindView(R.id.preview_surface)
     TextureView previewSurface;
-    private String password = "roy64389304";
-    private String formEmail = "roy.leung@gravitas.com.hk";
+    private String password = "aghf829-";
+    private String formEmail = "tnsys1@gmail.com";
     private RxCamera camera;
 
     @Override
