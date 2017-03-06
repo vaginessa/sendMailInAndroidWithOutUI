@@ -1,5 +1,7 @@
 package com.trysendemailphoto;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -22,6 +24,8 @@ import android.widget.Toast;
 import com.creativityapps.gmailbackgroundlibrary.BackgroundMail;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.ragnarok.rxcamera.RxCamera;
 import com.ragnarok.rxcamera.RxCameraData;
@@ -47,7 +51,10 @@ import rx.functions.Action1;
 import rx.functions.Func1;
 import rx.functions.Func2;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+import static com.trysendemailphoto.StaticStringSAndInt.FASTEST_INTERVAL;
+import static com.trysendemailphoto.StaticStringSAndInt.UPDATE_INTERVAL;
+
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     private final String TAG = "EmailWithOutUI";
     @BindView(R.id.edEmail)
@@ -64,6 +71,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private GoogleApiClient mGoogleApiClient;
     private String locationString = "";
+    private SharedPreferences sharedPref;
+    private LocationRequest mLocationRequest;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +80,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
 
+
+        sharedPref = getSharedPreferences(StaticStringSAndInt.preference_file_key, Context.MODE_PRIVATE);
+        initTheText(sharedPref);
         if (mGoogleApiClient == null) {
             mGoogleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -80,6 +92,35 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         openCamera();
+    }
+
+    @Override
+    protected void onStart() {
+        mGoogleApiClient.connect();
+        super.onStart();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString(StaticStringSAndInt.email_key, edEmail.getText().toString());
+        editor.putString(StaticStringSAndInt.message_key, edMessage.getText().toString());
+        editor.commit();
+    }
+
+    @Override
+    protected void onStop() {
+        if (mGoogleApiClient != null)
+            mGoogleApiClient.disconnect();
+        super.onStop();
+    }
+
+    private void initTheText(SharedPreferences preference) {
+        edMessage.setText(preference.getString(StaticStringSAndInt.message_key, ""));
+        edEmail.setText(preference.getString(StaticStringSAndInt.email_key, ""));
+
     }
 
     @OnClick(R.id.button)
@@ -194,7 +235,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             public void call() {
 
             }
-        }, 1920, 1080, ImageFormat.JPEG, true).subscribe(new Action1<RxCameraData>() {
+        }, 1920, 1080, ImageFormat.JPEG, false).subscribe(new Action1<RxCameraData>() {
             @Override
             public void call(RxCameraData rxCameraData) {
 
@@ -256,18 +297,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
 
     @Override
-    protected void onStart() {
-        mGoogleApiClient.connect();
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        mGoogleApiClient.disconnect();
-        super.onStop();
-    }
-
-    @Override
     public void onConnected(@Nullable Bundle bundle) {
         Location mLastLocation = LocationServices.FusedLocationApi.getLastLocation(
                 mGoogleApiClient);
@@ -275,7 +304,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         String latitude = String.valueOf(mLastLocation.getLatitude());
         String longitude = String.valueOf(mLastLocation.getLongitude());
         locationString = latitude + " " + longitude;
-        Toast.makeText(this, latitude + " " + longitude, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, latitude + " " + longitude, Toast.LENGTH_SHORT).show();
+        startLocationUpdates();
     }
 
     @Override
@@ -286,5 +316,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
+    }
+
+    // Trigger new location updates at interval
+    protected void startLocationUpdates() {
+        // Create the location request
+        mLocationRequest = LocationRequest.create()
+                .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
+                .setInterval(UPDATE_INTERVAL)
+                .setFastestInterval(FASTEST_INTERVAL);
+        // Request location updates
+        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+                mLocationRequest, this);
+    }
+
+
+    @Override
+    public void onLocationChanged(Location location) {
+        String latitude = String.valueOf(location.getLatitude());
+        String longitude = String.valueOf(location.getLongitude());
+        locationString = latitude + " " + longitude;
     }
 }
